@@ -1,25 +1,36 @@
-import logo from './logo.svg';
+import axios from 'axios';
+import 'bootstrap/dist/css/bootstrap.min.css';
+import { useEffect } from 'react';
 import './App.css';
+import { AuthProvider } from './cores/useAuth';
+import { ApiUri } from './_config';
+import RouterConfig from './_config/route';
 
 function App() {
-  return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
-  );
+
+    const checkTokenExpired = async () => {
+        const token = localStorage.getItem("token");
+        if (token) {
+            try {
+                await axios.get(ApiUri("auth/ticket"));
+            } catch (error) {
+                if (error.response && error.response.status === 401) {
+                    localStorage.removeItem("token");
+                    localStorage.removeItem("userdata");
+                    window.location.reload();
+                }
+            }
+        }
+    };
+    
+    useEffect(() => {
+        checkTokenExpired();
+    }, []);
+    return (
+        <AuthProvider>
+            <RouterConfig/>
+        </AuthProvider>
+    );
 }
 
 export default App;
